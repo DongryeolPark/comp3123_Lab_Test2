@@ -1,25 +1,66 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import WeatherDisplay from "./Components/WeatherDisplay";
+import ForecastDisplay from "./Components/ForcastDisplay";
+import SearchBar from "./Components/Search";
+import "./Styles/App.css";
 
-function App() {
+const App = () => {
+  const [city, setCity] = useState("Toronto");
+  const [weather, setWeather] = useState(null);
+  const [forecast, setForecast] = useState([]);
+  
+  const API_KEY = "04ee5bbb9f33f3d63ceddc2ac7df6a7c";
+
+  useEffect(() => {
+    // Fetch current weather
+    const fetchWeather = async () => {
+      try {
+        const response = await axios.get(
+          `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`
+        );
+        setWeather(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    // Fetch 5-day forecast
+    const fetchForecast = async () => {
+      try {
+        const response = await axios.get(
+          `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${API_KEY}`
+        );
+        // Filter to get one forecast per day at 12:00 PM
+        const filteredForecast = response.data.list.filter((item) =>
+          item.dt_txt.includes("12:00:00")
+        );
+        setForecast(filteredForecast);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchWeather();
+    fetchForecast();
+  }, [city]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const inputCity = e.target.elements.city.value;
+    setCity(inputCity);
+  };
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <h1> 101393080 Dongryeol</h1>
+      <h2> wellcome to my zone</h2>
+      <form onSubmit={handleSearch} className="search-bar">
+        <input type="text" name="city" placeholder="Enter city" />
+        <button type="submit">Search</button>
+      </form>
+      {weather && <WeatherDisplay weather={weather} />}
+      {forecast.length > 0 && <ForecastDisplay forecast={forecast} />}
     </div>
   );
-}
-
+};
 export default App;
